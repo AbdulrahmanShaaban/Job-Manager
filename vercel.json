@@ -1,7 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "cd server && npm install && npm run prisma:generate && npx esbuild src/app.ts --bundle --platform=node --format=esm --outfile=../api/bundle.mjs --external:tty --external:util",
+  "buildCommand": "cd server && npm install && npm run prisma:generate",
   "outputDirectory": ".",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "server/**"
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",
