@@ -175,11 +175,24 @@ store release.
    example `G:\avds`). Each `<name>.ini` must contain an absolute
    `path=<avd folder>\<name>.avd` line; a stale path makes the AVD disappear
    from `emulator -list-avds`.
-4. Hardware acceleration is required for a usable emulator. Install the Android
-   Emulator Hypervisor Driver (`sdkmanager "extras;google;Android_Emulator_Hypervisor_Driver"`,
-   then run `silent_install.bat` **as administrator**) or enable Windows
-   Hypervisor Platform and reboot. Without either, boot with `-accel off`; it is
-   extremely slow but still useful for a smoke test.
+4. Hardware acceleration is **mandatory** — this is not a performance
+   preference. Install the Android Emulator Hypervisor Driver
+   (`sdkmanager "extras;google;Android_Emulator_Hypervisor_Driver"`, then run
+   `silent_install.bat` **as administrator**) or enable Windows Hypervisor
+   Platform (`OptionalFeatures.exe` → "Windows Hypervisor Platform") and reboot.
+   Both require an elevated shell.
+
+   `-accel off` is **not** a fallback on emulator 37.2.12 with an `x86_64`
+   system image. The emulator starts, prints its boot properties, and then exits
+   with code 1 without ever registering with `adb` (`adb devices` stays empty,
+   and `emulator-check accel` reports
+   `Android Emulator hypervisor driver is not installed on this machine`). Only
+   an ARM system image can be software-emulated, and that is far too slow to be
+   a useful smoke test. Verify acceleration before attempting a boot:
+
+   ```powershell
+   emulator-check accel    # must report a hypervisor, not error code 6
+   ```
 5. Start it and run the debug build against the host API:
 
 ```powershell
