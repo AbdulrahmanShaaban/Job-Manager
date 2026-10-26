@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+      Debug builds talk to the local API over plain HTTP (10.0.2.2:3000).
+      Release builds keep Android's default HTTPS-only policy.
+    -->
+    <application android:usesCleartextTraffic="true" />
+</manifest>

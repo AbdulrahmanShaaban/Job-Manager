@@ -1,0 +1,12 @@
+# Copy this file to android/key.properties and fill in real values.
+# Never commit the resulting key.properties or the .jks file.
+#
+# Generate a keystore once with:
+#   keytool -genkey -v -keystore %USERPROFILE%\job-manager-release.jks ^
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias jobmanager
+#
+# storeFile accepts an absolute path or a path relative to mobile/android/app.
+storeFile=C:\\Users\\<you>\\job-manager-release.jks
+storePassword=<store password>
+keyAlias=jobmanager
+keyPassword=<key password>

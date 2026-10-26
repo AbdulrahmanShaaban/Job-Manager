@@ -1,0 +1,21 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Secrets - never commit these
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+key.properties
+!key.properties.example
+
+# Local build output
+build/
+dist/
+coverage/
+*.log
