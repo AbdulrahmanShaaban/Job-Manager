@@ -1,4 +1,4 @@
-import { createApp } from "./bundle.js";
-
+const { createApp } = require("./bundle.js");
 const app = createApp();
-export default app;
+module.exports = app;
+module.exports.default = app;
