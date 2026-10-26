@@ -22,8 +22,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _password = TextEditingController();
   final _code = TextEditingController();
   final _name = TextEditingController();
+  final _workspaceName = TextEditingController();
+  final _serverUrl = TextEditingController();
 
   bool _invitation = false;
+  bool _createAccount = false;
   bool _busy = false;
   String? _error;
   bool _obscure = true;
@@ -47,6 +50,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _password.dispose();
     _code.dispose();
     _name.dispose();
+    _workspaceName.dispose();
+    _serverUrl.dispose();
     super.dispose();
   }
 
@@ -57,7 +62,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final code = _code.text.trim();
     final name = _name.text.trim();
 
-    if (_invitation) {
+    if (_createAccount) {
+      if (name.isEmpty || email.isEmpty || password.length < 8) {
+        setState(() => _error = 'اكمل الاسم والبريد، والباسورد 8 حروف على الأقل.');
+        return;
+      }
+    } else if (_invitation) {
       if (code.isEmpty || name.isEmpty || password.length < 8) {
         setState(() => _error = 'اكمل الكود والاسم، والباسورد 8 حروف على الأقل.');
         return;
@@ -76,7 +86,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final auth = ref.read(authProvider.notifier);
-      if (_invitation) {
+      if (_createAccount) {
+        await auth.bootstrap(
+          name: name,
+          email: email,
+          password: password,
+          workspaceName: _workspaceName.text.trim().isEmpty
+              ? null
+              : _workspaceName.text.trim(),
+        );
+      } else if (_invitation) {
         await auth.acceptInvitation(code: code, name: name, password: password);
       } else {
         await auth.login(email: email, password: password);
@@ -104,29 +123,108 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const _Brand(),
                   const SizedBox(height: 26),
+                  if (AppConfig.configurationError != null) ...[
+                    SurfaceCard(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Server URL',
+                            style: context.texts.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Enter your backend URL (e.g. https://your-app.vercel.app/api/v1)',
+                            style: context.texts.bodySmall?.copyWith(color: context.mutedText, height: 1.5),
+                          ),
+                          const SizedBox(height: 14),
+                          LabeledField(
+                            label: 'Server URL',
+                            child: ShadInput(
+                              controller: _serverUrl,
+                              placeholder: const Text('https://...'),
+                              textDirection: TextDirection.ltr,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          ShadButton(
+                            size: ShadButtonSize.lg,
+                            onPressed: _busy
+                                ? null
+                                : () async {
+                                    final url = _serverUrl.text.trim();
+                                    if (url.isEmpty) return;
+                                    await ref.read(sessionStoreProvider).writeApiBaseUrl(url);
+                                    AppConfig.setRuntimeOverride(url);
+                                    setState(() {});
+                                  },
+                            child: const Text('Save & Connect'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
                   SurfaceCard(
                     padding: const EdgeInsets.all(18),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          _invitation ? 'تفعيل كود دعوة' : 'تسجيل الدخول',
+                          _createAccount
+                              ? 'إنشاء حساب جديد'
+                              : _invitation
+                                  ? 'تفعيل كود دعوة'
+                                  : 'تسجيل الدخول',
                           style: context.texts.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _invitation
-                              ? 'الكود بيجي من مسؤول الشركة وبيتستخدم مرة واحدة.'
-                              : 'ادخل بحسابك عشان تشوف مواقع الشركة وشغلك.',
+                          _createAccount
+                              ? 'أنشئ حسابك (أول مستخدم يصبح مالك الشركة).'
+                              : _invitation
+                                  ? 'الكود بيجي من مسؤول الشركة وبيتستخدم مرة واحدة.'
+                                  : 'ادخل بحسابك عشان تشوف مواقع الشركة وشغلك.',
                           style: context.texts.bodySmall?.copyWith(
                             color: context.mutedText,
                             height: 1.5,
                           ),
                         ),
                         const SizedBox(height: 18),
-                        if (_invitation) ...[
+                        if (_createAccount) ...[
+                          LabeledField(
+                            label: 'الاسم',
+                            child: ShadInput(
+                              controller: _name,
+                              placeholder: const Text('اسمك الكامل'),
+                              textCapitalization: TextCapitalization.words,
+                              autofocus: true,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          LabeledField(
+                            label: 'البريد الإلكتروني',
+                            child: ShadInput(
+                              controller: _email,
+                              placeholder: const Text('name@company.com'),
+                              keyboardType: TextInputType.emailAddress,
+                              textDirection: TextDirection.ltr,
+                              autofillHints: const [AutofillHints.email],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          LabeledField(
+                            label: 'اسم الشركة (اختياري)',
+                            child: ShadInput(
+                              controller: _workspaceName,
+                              placeholder: const Text('شركتي'),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                        ] else if (_invitation) ...[
                           LabeledField(
                             label: 'كود الدعوة',
                             child: ShadInput(
@@ -196,26 +294,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   height: 18,
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : Text(_invitation ? 'فعّل الحساب' : 'دخول'),
+                              : Text(_createAccount
+                                  ? 'أنشئ الحساب'
+                                  : _invitation
+                                      ? 'فعّل الحساب'
+                                      : 'دخول'),
                         ),
                         const SizedBox(height: 10),
                         ShadButton.ghost(
                           onPressed: _busy
                               ? null
                               : () => setState(() {
-                                  _invitation = !_invitation;
-                                  _error = null;
-                                }),
+                                    _createAccount = false;
+                                    _invitation = !_invitation;
+                                    _error = null;
+                                  }),
                           child: Text(
                             _invitation ? 'عندي حساب بالفعل' : 'عندك كود دعوة؟',
                           ),
                         ),
+                        if (!_invitation)
+                          ShadButton.ghost(
+                            onPressed: _busy
+                                ? null
+                                : () => setState(() {
+                                      _createAccount = !_createAccount;
+                                      _error = null;
+                                    }),
+                            child: Text(
+                              _createAccount
+                                  ? 'عندي حساب بالفعل'
+                                  : 'إنشاء حساب جديد (أول مستخدم)',
+                            ),
+                          ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    'مفيش تسجيل مفتوح. كل حساب بيتم تفعيله بكود دعوة.',
+                    _createAccount
+                        ? 'هذا الخيار متاح فقط على قاعدة بيانات جديدة (أول مستخدم).'
+                        : 'مفيش تسجيل مفتوح. كل حساب بيتم تفعيله بكود دعوة.',
                     textAlign: TextAlign.center,
                     style: context.texts.bodySmall?.copyWith(color: context.mutedText),
                   ),

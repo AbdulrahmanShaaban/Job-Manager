@@ -1,0 +1,14 @@
+# Vercel deployment ignore list
+node_modules
+mobile
+docs
+.git
+*.md
+server/dist
+server/src/generated
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+key.properties

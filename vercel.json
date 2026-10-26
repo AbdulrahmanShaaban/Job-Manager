@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "buildCommand": "cd server && npm install && npm run prisma:generate",
+  "functions": {
+    "api/index.ts": {
+      "runtime": "@vercel/node",
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.ts"
+    }
+  ]
+}

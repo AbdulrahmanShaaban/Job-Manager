@@ -83,6 +83,49 @@ authRouter.post("/login", authRateLimit, async (req, res) => {
   });
 });
 
+const bootstrapSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  email: emailSchema,
+  password: passwordSchema,
+  workspaceName: z.string().trim().min(1).max(120).optional(),
+});
+
+// One-time first-run setup: only works while the database has zero users.
+// After the first owner is created this returns 403, so it is not an open
+// sign-up endpoint - it is a bootstrap for a fresh deployment.
+authRouter.post("/bootstrap", authRateLimit, async (req, res) => {
+  const body = parseWith(bootstrapSchema, req.body);
+
+  const userCount = await prisma.user.count();
+  if (userCount > 0) {
+    throw ApiError.forbidden("System is already set up. Use login or an invitation code.");
+  }
+
+  const email = body.email.trim().toLowerCase();
+  const passwordHash = await argon2.hash(body.password, { type: argon2.argon2id });
+
+  const user = await prisma.$transaction(async (tx) => {
+    const created = await tx.user.create({
+      data: { name: body.name.trim(), email, passwordHash },
+    });
+    const workspace = await tx.workspace.create({
+      data: { name: body.workspaceName?.trim() || "My Workspace" },
+    });
+    await tx.workspaceMember.create({
+      data: { workspaceId: workspace.id, userId: created.id, role: "OWNER" },
+    });
+    return created;
+  });
+
+  const session = await createSession(user.id, req.header("user-agent"));
+  res.status(201).json({
+    token: session.token,
+    expiresAt: session.expiresAt.toISOString(),
+    user: { id: user.id, name: user.name, email: user.email },
+    workspaces: await workspacesFor(user.id),
+  });
+});
+
 authRouter.post("/accept-invitation", authRateLimit, async (req, res) => {
   const body = parseWith(acceptInvitationSchema, req.body);
 

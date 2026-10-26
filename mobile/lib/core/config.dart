@@ -9,6 +9,14 @@ import 'package:flutter/foundation.dart';
 class AppConfig {
   const AppConfig._();
 
+  static String? _runtimeOverride;
+
+  static void setRuntimeOverride(String? url) {
+    _runtimeOverride = (url == null || url.trim().isEmpty) ? null : url.trim();
+  }
+
+  static String? get runtimeOverride => _runtimeOverride;
+
   static const String _override = String.fromEnvironment('API_BASE_URL');
 
   /// Returns a user-facing explanation when this build cannot reach a server.
@@ -18,18 +26,21 @@ class AppConfig {
   /// request with a generic network error, so it is rejected up front.
   static String? get configurationError {
     if (_override.isNotEmpty) return null;
+    if (_runtimeOverride != null && _runtimeOverride!.isNotEmpty) return null;
     if (kReleaseMode) {
-      return 'النسخة دي اتبنت من غير عنوان السيرفر، فمش هتقدر تتصل بأي بيانات.\n'
-          'أعد بناء التطبيق مع --dart-define=API_BASE_URL=https://<server>/api/v1';
+      return 'لم يُحدد عنوان السيرفر.\n'
+          'أدخل عنوان السيرفر في شاشة تسجيل الدخول، أو أعد البناء مع\n'
+          '--dart-define=API_BASE_URL=https://<server>/api/v1';
     }
     return null;
   }
 
   static String get apiBaseUrl {
     if (_override.isNotEmpty) return _override;
+    if (_runtimeOverride != null && _runtimeOverride!.isNotEmpty) return _runtimeOverride!;
     if (kReleaseMode) {
       throw StateError(
-        'API_BASE_URL was not provided at build time; release builds must define it.',
+        'API_BASE_URL was not provided at build time and no runtime override is set.',
       );
     }
     if (!kIsWeb && Platform.isAndroid) {

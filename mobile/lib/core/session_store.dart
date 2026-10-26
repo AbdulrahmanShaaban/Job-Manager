@@ -11,6 +11,7 @@ class SessionStore {
 
   static const String _tokenKey = 'job_manager.session_token';
   static const String _emailKey = 'job_manager.last_email';
+  static const String _apiUrlKey = 'job_manager.api_base_url';
 
   final FlutterSecureStorage _storage;
 
@@ -23,4 +24,11 @@ class SessionStore {
   Future<String?> readLastEmail() => _storage.read(key: _emailKey);
 
   Future<void> writeLastEmail(String email) => _storage.write(key: _emailKey, value: email);
+
+  Future<String?> readApiBaseUrl() => _storage.read(key: _apiUrlKey);
+
+  Future<void> writeApiBaseUrl(String url) =>
+      _storage.write(key: _apiUrlKey, value: url.trim());
+
+  Future<void> clearApiBaseUrl() => _storage.delete(key: _apiUrlKey);
 }

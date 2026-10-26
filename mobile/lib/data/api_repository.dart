@@ -39,6 +39,25 @@ class ApiRepository {
     return AuthSession.fromJson(json);
   }
 
+  Future<AuthSession> bootstrap({
+    required String name,
+    required String email,
+    required String password,
+    String? workspaceName,
+  }) async {
+    final json = await _client.post(
+      '/auth/bootstrap',
+      body: {
+        'name': name.trim(),
+        'email': email.trim(),
+        'password': password,
+        if (workspaceName != null && workspaceName.trim().isNotEmpty)
+          'workspaceName': workspaceName.trim(),
+      },
+    );
+    return AuthSession.fromJson(json);
+  }
+
   Future<({AppUser user, List<Workspace> workspaces})> me() async {
     final json = await _client.get('/auth/me');
     return (

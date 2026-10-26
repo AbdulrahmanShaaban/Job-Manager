@@ -111,6 +111,18 @@ class AuthController extends AsyncNotifier<AuthState> {
     await _applySession(session);
   }
 
+  Future<void> bootstrap({
+    required String name,
+    required String email,
+    required String password,
+    String? workspaceName,
+  }) async {
+    final session = await ref
+        .read(apiRepositoryProvider)
+        .bootstrap(name: name, email: email, password: password, workspaceName: workspaceName);
+    await _applySession(session);
+  }
+
   Future<void> _applySession(AuthSession session) async {
     final client = ref.read(apiClientProvider);
     final store = ref.read(sessionStoreProvider);
