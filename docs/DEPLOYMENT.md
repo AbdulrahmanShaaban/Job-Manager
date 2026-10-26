@@ -160,7 +160,45 @@ intentional so the platform does not restart-loop the API.
 
 ---
 
-## 4. Mobile release build
+## 5. Deploy the backend to Vercel
+
+The repository is Vercel-ready: `vercel.json` builds the Prisma client and
+routes everything to `api/index.ts`.
+
+1. Push the repo to GitHub (already done).
+2. In Vercel: **New Project** → import `AbdulrahmanShaaban/Job-Manager`.
+3. Set the following environment variables in the Vercel dashboard:
+
+   | Variable | Value |
+   | --- | --- |
+   | `DATABASE_URL` | Neon pooled URL (`...-pooler...`) |
+   | `DIRECT_URL` | Neon direct URL (same host without `-pooler`) |
+   | `AUTH_SECRET` | 32+ byte random secret |
+   | `NODE_ENV` | `production` |
+   | `SESSION_TTL_DAYS` | `30` |
+   | `AI_ALLOW_PAID_FALLBACK` | `false` |
+   | `AI_MONTHLY_BUDGET_USD` | `0` |
+   | `GEMINI_API_KEY` | your Gemini key |
+   | `GEMINI_LIVE_MODEL` | `gemini-3.8-live` |
+   | `GEMINI_TEXT_MODEL` | `gemini-3.5-flash` |
+   | `GROQ_API_KEY` | (leave blank for Gemini-only) |
+   | `CORS_ORIGINS` | your app's origin or `*` for mobile |
+   | `SEED_OWNER_EMAIL` | (optional, for seed) |
+   | `SEED_OWNER_PASSWORD` | (optional, for seed) |
+   | `SEED_OWNER_NAME` | (optional, for seed) |
+   | `SEED_WORKSPACE_NAME` | (optional, for seed) |
+
+4. Deploy. Vercel runs `npm install && npm run prisma:generate` in `server/`.
+5. After deploy, run migrations against Neon:
+   ```powershell
+   $env:DATABASE_URL="your-pooled-url"; $env:DIRECT_URL="your-direct-url"
+   cd server; npx prisma migrate deploy
+   ```
+6. (Optional) Seed the owner: `npm run seed` with the SEED_* env vars set.
+   Or use the bootstrap endpoint: `POST https://your-app.vercel.app/api/v1/auth/bootstrap`
+   with `{name, email, password, workspaceName}` — works only on an empty DB.
+
+Your API URL will be `https://your-app.vercel.app/api/v1`.
 
 ### 4.0 Local Android emulator on Windows
 
