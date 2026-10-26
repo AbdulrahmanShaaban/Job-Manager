@@ -1,4 +1,3 @@
-# Vercel deployment ignore list
 node_modules
 mobile
 docs

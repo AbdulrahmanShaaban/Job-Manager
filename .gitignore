@@ -19,3 +19,10 @@ build/
 dist/
 coverage/
 *.log
+
+.vercel
+.env*
+
+# Vercel build artifact
+api/bundle.js
+
