@@ -182,6 +182,11 @@ store release.
    Platform (`OptionalFeatures.exe` → "Windows Hypervisor Platform") and reboot.
    Both require an elevated shell.
 
+   On this machine AEHD 2.2 is already installed and usable
+   (`emulator-check accel` → `AEHD (version 2.2) is installed and usable.`), so
+   the emulator boots with acceleration and the app reaches `Fully drawn` in
+   about 46s.
+
    `-accel off` is **not** a fallback on emulator 37.2.12 with an `x86_64`
    system image. The emulator starts, prints its boot properties, and then exits
    with code 1 without ever registering with `adb` (`adb devices` stays empty,

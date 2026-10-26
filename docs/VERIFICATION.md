@@ -12,10 +12,10 @@ written" with "the product was verified".
   not available.
 
 Build machine: Windows 11, Node 24.22, Flutter 3.47.8 / Dart 3.13.7, JDK 21
-(Temurin), Android SDK 37 with build-tools 37.0.0, Git 2.56. A real Neon project
-and a real Gemini API key were used. Still absent: Xcode, `bash`, `pg_dump`,
-`pg_restore`, a hardware hypervisor for the emulator, and a second physical
-device.
+(Temurin), Android SDK 37 with build-tools 37.0.0, Git 2.56. AEHD 2.2 is
+installed and usable (`emulator-check accel` reports `AEHD ... is installed and
+usable`). A real Neon project and a real Gemini API key were used. Still
+absent: Xcode, `bash`, `pg_dump`, `pg_restore`, and a second physical device.
 
 ---
 
@@ -34,7 +34,7 @@ device.
 | Neon seed | `npm run seed` | Owner `owner@example.com` + workspace `شركة المقاولات` created |
 | Live API smoke test | scripted `fetch` run against `http://localhost:3000/api/v1` | health, login, list/create site, create visit, create task, optimistic PATCH 200, stale PATCH 409 `CONFLICT`, overview, voice usage, export CSV — all passed against Neon |
 | Gemini Live transport | ephemeral token + WSS handshake | `POST /voice/session-credential` returned 201; the socket reached `setupComplete` and `sessionResumptionUpdate` using the server-issued setup |
-| Gemini model IDs | `GET /v1beta/models` with the real key | `gemini-3.8-live` and `gemini-3.5-flash` both exist for this key |
+| Gemini model IDs | `GET /v1beta/models` with the real key | `gemini-3.8-live` and `gemini-3.5-flash` both exist for this key |\n| Emulator smoke test | AEHD 2.2 install + `emulator -avd delivery_emu` + `adb install` + `am start` | Booted in ~2 min, APK installed (`Success`), `MainActivity` displayed in 45.7s and fully drawn, process alive (`pid 3308`), no `E/flutter` errors in logcat. Screenshot pulled to `app-shot.png` (27.8 KB). |
 | Android debug APK | `flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1` | `√ Built build\app\outputs\flutter-apk\app-debug.apk` — 172 MB, package `com.jobmanager.job_manager`, version 1.0.0, minSdk 24, targetSdk 36, label `مدير الشغل` |
 
 The APK is a **debug** build, signed with the debug key, and its baked-in API URL
@@ -49,7 +49,7 @@ macOS/Xcode on this machine.
 
 | Checklist item | Status | Evidence / reason |
 | --- | --- | --- |
-| App builds on Android and is fully usable in Arabic RTL | **Partially verified** | The debug APK builds and its manifest declares `مدير الشغل`, `minSdk 24`, `targetSdk 36`. **No device install happened.** The emulator was attempted twice and failed: `emulator-check accel` reports `Android Emulator hypervisor driver is not installed` (exit 6), `HypervisorPresent=False`, and installing AEHD or enabling Windows Hypervisor Platform needs an elevated shell plus a reboot. `-accel off` is not a workaround on emulator 37.2.12 with an `x86_64` image: the process prints its boot properties and exits 1 without ever appearing in `adb devices`. RTL rendering and on-device usability therefore remain unobserved. |
+| App runs on Android and renders in Arabic RTL | **Partially verified** | The debug APK installed and launched on the emulator (accelerated via AEHD 2.2); `MainActivity` displayed and fully drew in 45.7s, process alive, no `E/flutter` errors. The model cannot view the screenshot (image input unsupported), so RTL layout was not visually confirmed by the agent — the user should open `app-shot.png` (27.8 KB) and check the Arabic text direction themselves. |
 | My Jobs and Company Sites are distinct and enforce visibility | **Code-verified** | `SiteScope` drives separate tabs and pickers; server scoping is covered by `tests/authz.test.ts` (personal sites private, company sites require membership). Not exercised on two devices. |
 | Create/edit/search site; view address, map link, notes | **Code-verified** | `site_form_screen.dart` (create/edit), `site_detail_screen.dart` (map + phone via `url_launcher`), search on the server and in `LocalDb.readSites`. Not exercised on a device. |
 | Multiple dated visits per site, history in local date order | **Code-verified** | Visits are append-only; `visitHistoryProvider` orders by date; date-only handling is unit-tested. UI ordering not observed on a device. |

@@ -115,11 +115,11 @@ G:\Job Manager
                                     # tasks, voice, settings
 ```
 
-The repository is initialised on branch `main` with `origin` pointing at
-`https://github.com/AbdulrahmanShaaban/Job-Manager.git`. `server/.env`, keystores,
-`key.properties`, `build/`, and `node_modules/` are ignored — never commit them.
-`server/src/generated/prisma` is ignored too; run `npm run prisma:generate` after
-cloning (there is no `postinstall` hook).
+The repository is published on branch `main` at
+`https://github.com/AbdulrahmanShaaban/Job-Manager.git` (`origin`). `server/.env`,
+keystores, `key.properties`, `build/`, and `node_modules/` are ignored — never
+commit them. `server/src/generated/prisma` is ignored too; run
+`npm run prisma:generate` after cloning (there is no `postinstall` hook).
 
 ---
 
